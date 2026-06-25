@@ -23,6 +23,7 @@ import {
   escapeXML,
   sanitizeSpeed,
   sanitizeCustomText,
+  sanitizeDimension,
 } from './sanitizer';
 
 import { GRID_ORIGIN_X, GRID_ORIGIN_Y, TILE_HEIGHT_HALF, TILE_WIDTH_HALF } from './layoutConstants';
@@ -1121,8 +1122,8 @@ export function generateMonthlySVG(stats: MonthlyStats, params: BadgeParams): st
   const radius = sanitizeRadius(params.radius, 8);
   const labels = getLabels(params.lang);
 
-  const width = params.width || 300;
-  const height = params.height || 120;
+  const width = sanitizeDimension(params.width, 300);
+  const height = sanitizeDimension(params.height, 120);
 
   const googleFontUrlPart =
     sanitizedFont && !isPredefinedFont ? sanitizeGoogleFontUrl(sanitizedFont) : null;
@@ -1220,8 +1221,8 @@ export function generateWrappedSVG(
   const statsFont = selectedFont || '"Space Grotesk", sans-serif';
   const radius = sanitizeRadius(params.radius, 8);
 
-  const width = params.width || 420;
-  const height = params.height || 260;
+  const width = sanitizeDimension(params.width, 420);
+  const height = sanitizeDimension(params.height, 260);
 
   const googleFontUrlPart =
     sanitizedFont && !isPredefinedFont ? sanitizeGoogleFontUrl(sanitizedFont) : null;
@@ -1464,8 +1465,8 @@ function generateAutoThemeMonthlySVG(stats: MonthlyStats, params: BadgeParams): 
   const radius = sanitizeRadius(params.radius, 8);
   const labels = getLabels(params.lang);
 
-  const width = params.width || 300;
-  const height = params.height || 120;
+  const width = sanitizeDimension(params.width, 300);
+  const height = sanitizeDimension(params.height, 120);
 
   const commitsLabel =
     params.mode === 'loc' ? 'LINES THIS MONTH (EST.)' : labels.COMMITS_THIS_MONTH;
@@ -2372,8 +2373,8 @@ export function generatePulseSVG(
     ? `@import url('https://fonts.googleapis.com/css2?family=${googleFontUrlPart}&amp;display=swap');`
     : '';
 
-  const width = params.width || 800;
-  const height = params.height || 170;
+  const width = sanitizeDimension(params.width, 800);
+  const height = sanitizeDimension(params.height, 170);
 
   const days: number[] = [];
   calendar.weeks.forEach((week) => {
@@ -2557,8 +2558,8 @@ function generateAutoThemePulseSVG(
     ? `@import url('https://fonts.googleapis.com/css2?family=${googleFontUrlPart}&amp;display=swap');`
     : '';
 
-  const width = params.width || 800;
-  const height = params.height || 170;
+  const width = sanitizeDimension(params.width, 800);
+  const height = sanitizeDimension(params.height, 170);
 
   const days: number[] = [];
   calendar.weeks.forEach((week) => {
@@ -2781,8 +2782,8 @@ function renderSkylineSVG(
   const parsedRadius = Number(params.radius);
   const radius = Math.max(0, Math.min(Number.isNaN(parsedRadius) ? 8 : parsedRadius, 50));
 
-  const width = params.width || 800;
-  const height = params.height || 260;
+  const width = sanitizeDimension(params.width, 800);
+  const height = sanitizeDimension(params.height, 260);
 
   const weeklyContributions: number[] = [];
   const weeks = calendar.weeks;
@@ -3316,7 +3317,7 @@ export function generateLanguagesSVG(
             <path d="${paths.right}" fill="${hexColor}" fill-opacity="0.65" />
             <path d="${paths.top}" fill="${hexColor}" fill-opacity="1.0" />
             
-            <text x="0" y="${-h - 18 * sf}" text-anchor="middle" font-family='${statsFont}' font-size="${14 * sf}px" fill="${text}" font-weight="bold">${lang.name}</text>
+            <text x="0" y="${-h - 18 * sf}" text-anchor="middle" font-family='${statsFont}' font-size="${14 * sf}px" fill="${text}" font-weight="bold">${escapeXML(lang.name)}</text>
             <text x="0" y="${-h - 4 * sf}" text-anchor="middle" font-family='${statsFont}' font-size="${12 * sf}px" fill="${text}" opacity="0.6">${lang.percentage}%</text>
           </g>
         </g>`;
@@ -3369,8 +3370,8 @@ export function generateActivityGraphSVG(
   const parsedRadius = Number(params.radius);
   const radius = Math.max(0, Math.min(Number.isNaN(parsedRadius) ? 8 : parsedRadius, 50));
 
-  const width = params.width || 800;
-  const height = params.height || 220;
+  const width = sanitizeDimension(params.width, 800);
+  const height = sanitizeDimension(params.height, 220);
 
   const { pathD, areaPathD, trendPathD, peakX, peakY, peakCount, peakDate, days, totalCount } =
     _buildActivityGraphData(calendar, params, width, height);
@@ -3391,17 +3392,17 @@ export function generateActivityGraphSVG(
 >
   <title id="cp-title-${safeId}">Activity Graph for ${safeUser}</title>
   <desc id="cp-desc-${safeId}">Contribution activity graph for ${safeUser} over ${days} days, totalling ${totalCount} ${unit.toLowerCase()}.</desc>
-  &lt;!--_renderActivityGraphDefs(accent, bg, params)--&gt;
+  ${_renderActivityGraphDefs(accent, bg, params)}
   <style>
   @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap');
   ${googleFontsImport}
-  &lt;!--_activityGraphCSS(selectedFont, statsFont, text, accent, false)--&gt;
+  ${_activityGraphCSS(selectedFont, statsFont, text, accent, false)}
   </style>
   <rect width="${width}" height="${height}" rx="${radius}" fill="${params.hideBackground ? 'transparent' : bgFill}" />
   <path class="ag-area" d="${areaPathD}" />
   <path class="ag-trend" d="${trendPathD}" stroke="${accent}" />
   <path class="ag-line" d="${pathD}" stroke="${accent}" />
-  &lt;!--_renderPeakAnnotation(peakX, peakY, peakCount, peakDate, accent, text, statsFont, false)--&gt;
+  ${_renderPeakAnnotation(peakX, peakY, peakCount, peakDate, accent, text, statsFont, false)}
   ${!params.hide_title ? `<text x="24" y="28" class="ag-title">${safeUser.toUpperCase()}${params.isOfflineFallback ? '<tspan fill="#ff9f43" font-size="10px" font-weight="bold"> [STALE CACHE]</tspan>' : ''}</text>` : ''}
   ${!params.hide_stats ? `<text x="${width - 24}" y="28" text-anchor="end" class="ag-total">${totalCount} ${unit}</text>` : ''}
 </svg>
@@ -3430,8 +3431,8 @@ function generateAutoThemeActivityGraphSVG(
   const parsedRadius = Number(params.radius);
   const radius = Math.max(0, Math.min(Number.isNaN(parsedRadius) ? 8 : parsedRadius, 50));
 
-  const width = params.width || 800;
-  const height = params.height || 220;
+  const width = sanitizeDimension(params.width, 800);
+  const height = sanitizeDimension(params.height, 220);
 
   const { pathD, areaPathD, trendPathD, peakX, peakY, peakCount, peakDate, days, totalCount } =
     _buildActivityGraphData(calendar, params, width, height);
@@ -3468,13 +3469,13 @@ function generateAutoThemeActivityGraphSVG(
   :root { --cp-bg: #${light.bg}; --cp-text: #${light.text}; --cp-accent: #${light.accent}; }
   @media (prefers-color-scheme: dark) { :root { --cp-bg: #${dark.bg}; --cp-text: #${dark.text}; --cp-accent: #${dark.accent}; } }
   .cp-bg-fill { fill: var(--cp-bg); }
-  &lt;!--_activityGraphCSS(selectedFont, statsFont, 'var(--cp-text)', 'var(--cp-accent)', true)--&gt;
+  ${_activityGraphCSS(selectedFont, statsFont, 'var(--cp-text)', 'var(--cp-accent)', true)}
   </style>
   <rect width="${width}" height="${height}" rx="${radius}" ${params.hideBackground ? 'fill="transparent"' : 'class="cp-bg-fill"'} />
   <path class="ag-area" d="${areaPathD}" />
   <path class="ag-trend" d="${trendPathD}" stroke="var(--cp-accent)" />
   <path class="ag-line" d="${pathD}" stroke="var(--cp-accent)" />
-  &lt;!--_renderPeakAnnotation(peakX, peakY, peakCount, peakDate, 'var(--cp-accent)', 'var(--cp-text)', statsFont, true)--&gt;
+  ${_renderPeakAnnotation(peakX, peakY, peakCount, peakDate, 'var(--cp-accent)', 'var(--cp-text)', statsFont, true)}
   ${!params.hide_title ? `<text x="24" y="28" class="ag-title">${safeUser.toUpperCase()}${params.isOfflineFallback ? '<tspan fill="#ff9f43" font-size="10px" font-weight="bold"> [STALE CACHE]</tspan>' : ''}</text>` : ''}
   ${!params.hide_stats ? `<text x="${width - 24}" y="28" text-anchor="end" class="ag-total">${totalCount} ${unit}</text>` : ''}
 </svg>

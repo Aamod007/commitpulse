@@ -191,6 +191,23 @@ export function getGradientCoordinates(dir?: string): {
   }
 }
 
+/**
+ * Sanitizes SVG dimension (width/height) values.
+ * Must be a positive integer or float within 1 to 5000.
+ * Rejects values with non-numeric characters (except decimal point).
+ */
+export function sanitizeDimension(
+  value: string | number | undefined | null,
+  fallback: number
+): number {
+  const strVal = value !== null && value !== undefined ? String(value).trim() : '';
+  if (!strVal) return fallback;
+  if (!/^\d+(\.\d+)?$/.test(strVal)) return fallback;
+  const parsed = parseFloat(strVal);
+  if (isNaN(parsed)) return fallback;
+  return Math.max(1, Math.min(parsed, 5000));
+}
+
 export function escapeXML(str: string): string {
   if (!str) return '';
   return str
